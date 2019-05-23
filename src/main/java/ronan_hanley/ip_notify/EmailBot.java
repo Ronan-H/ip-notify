@@ -21,7 +21,7 @@ public class EmailBot {
 
     public void sendIPChangeNotification(String fromIP, String toIP, int retryTimeout) {
         String subject = "Notification of IP Address Change";
-        
+
         String body = "Hello,\n\n"
                 + "This is an automated email to inform you that an IP address change has been detected.\n"
                 + String.format("It appears to have changed from %s to %s.\n", fromIP.replace(".", "-"), toIP.replace(".", "-"))
