@@ -9,24 +9,28 @@ import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 
 public class EmailBot {
-    private static String USER_NAME = "username"; // Mail.com email address
-    private static String PASSWORD = "password"; // Mail.com password
-    private static String RECIPIENT = "recipient";
+    private String username;
+    private String password;
+    private String recipient;
 
-    public static void sendIPChangeNotification(String fromIP, String toIP, int retryTimeout) {
-        String from = USER_NAME;
-        String pass = PASSWORD;
-        String[] to = { RECIPIENT }; // list of recipient email addresses
+    public EmailBot(String username, String password, String recipient) {
+        this.username = username;
+        this.password = password;
+        this.recipient = recipient;
+    }
+
+    public void sendIPChangeNotification(String fromIP, String toIP, int retryTimeout) {
         String subject = "Notification of IP Address Change";
+        
         String body = "Hello,\n\n"
                 + "This is an automated email to inform you that an IP address change has been detected.\n"
                 + String.format("It appears to have changed from %s to %s.\n", fromIP.replace(".", "-"), toIP.replace(".", "-"))
                 + "Don't forget to re-launch IP Notify using the new IP address to get continued notifications of changes of IP.\n";
 
-        sendFromGMail(from, pass, to, subject, body, retryTimeout);
+        sendEmail(username, password, recipient, subject, body, retryTimeout);
     }
 
-    public static void sendFromGMail(String from, String pass, String[] to, String subject, String body, int retryTimeout) {
+    public void sendEmail(String from, String pass, String recipient, String subject, String body, int retryTimeout) {
         boolean messageSent = false;
 
         Properties props = System.getProperties();
@@ -44,16 +48,8 @@ public class EmailBot {
         while (!messageSent) {
             try {
                 message.setFrom(new InternetAddress(from));
-                InternetAddress[] toAddress = new InternetAddress[to.length];
-
-                // To get the array of addresses
-                for( int i = 0; i < to.length; i++ ) {
-                    toAddress[i] = new InternetAddress(to[i]);
-                }
-
-                for( int i = 0; i < toAddress.length; i++) {
-                    message.addRecipient(Message.RecipientType.TO, toAddress[i]);
-                }
+                InternetAddress toAddress = new InternetAddress(recipient);
+                message.addRecipient(Message.RecipientType.TO, toAddress);
 
                 message.setSubject(subject);
                 message.setText(body);

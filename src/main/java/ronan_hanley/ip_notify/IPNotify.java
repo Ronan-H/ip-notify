@@ -8,21 +8,25 @@ import java.net.URL;
 
 public class IPNotify {
     private boolean running;
-    private static final String checkSite = "http://www.icanhazip.com/";
+    private static final String ipCheckSite = "http://www.icanhazip.com/";
+
+    private static final String username = "username"; // Sending email address
+    private static final String password = "password"; // Sending email password
+    private static final String recipient = "recipient"; // recipient email
+
+    // seconds to sleep before trying again after failing to send the notification email
     private static final int retryTimeout = 10;
 
-    public static void main(String[] args) {
-        new IPNotify().go(args[0], Integer.parseInt(args[1]));
-    }
-
     public void go(String expectedIP, int sleepTime) {
+        EmailBot emailBot = new EmailBot(username, password, recipient);
+
         URL checkSiteURL = null;
         String currentIP = null;
         boolean gotIP;
         boolean ipMatches;
 
         try {
-            checkSiteURL = new URL(checkSite);
+            checkSiteURL = new URL(ipCheckSite);
         } catch (MalformedURLException e) {
             e.printStackTrace();
             System.exit(0);
@@ -30,7 +34,7 @@ public class IPNotify {
 
         running = true;
         while (running) {
-            System.out.printf("Checking current external IP address on %s...%n", checkSite);
+            System.out.printf("Checking current external IP address on %s...%n", ipCheckSite);
 
             gotIP = false;
             do {
@@ -62,7 +66,7 @@ public class IPNotify {
             } else {
                 System.out.println("~~~ WARNING: IP has changed! ~~~");
                 System.out.println("Sending notification email...");
-                EmailBot.sendIPChangeNotification(expectedIP, currentIP, retryTimeout);
+                emailBot.sendIPChangeNotification(expectedIP, currentIP, retryTimeout);
 
                 System.out.printf("Sleeping for %d seconds before exiting...%n", retryTimeout);
 
@@ -85,4 +89,7 @@ public class IPNotify {
         return ip;
     }
 
+    public static void main(String[] args) {
+        new IPNotify().go(args[0], Integer.parseInt(args[1]));
+    }
 }
