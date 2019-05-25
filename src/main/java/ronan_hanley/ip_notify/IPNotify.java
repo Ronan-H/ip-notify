@@ -1,5 +1,7 @@
 package ronan_hanley.ip_notify;
 
+import com.beust.jcommander.JCommander;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,17 +10,9 @@ import java.net.URL;
 
 public class IPNotify {
     private boolean running;
-    private static final String ipCheckSite = "http://www.icanhazip.com/";
 
-    private static final String username = "username"; // Sending email address
-    private static final String password = "password"; // Sending email password
-    private static final String recipient = "recipient"; // recipient email
-
-    // seconds to sleep before trying again after failing to send the notification email
-    private static final int retryTimeout = 10;
-
-    public void go(String expectedIP, int sleepTime) {
-        EmailBot emailBot = new EmailBot(username, password, recipient);
+    public void go(Args jcArgs) {
+        EmailBot emailBot = new EmailBot(jcArgs.username, jcArgs.password, jcArgs.recipient);
 
         URL checkSiteURL = null;
         String currentIP = null;
@@ -26,7 +20,7 @@ public class IPNotify {
         boolean ipMatches;
 
         try {
-            checkSiteURL = new URL(ipCheckSite);
+            checkSiteURL = new URL(jcArgs.ipCheckSite);
         } catch (MalformedURLException e) {
             e.printStackTrace();
             System.exit(0);
@@ -34,7 +28,7 @@ public class IPNotify {
 
         running = true;
         while (running) {
-            System.out.printf("Checking current external IP address on %s...%n", ipCheckSite);
+            System.out.printf("Checking current external IP address on %s...%n", jcArgs.ipCheckSite);
 
             gotIP = false;
             do {
@@ -42,36 +36,36 @@ public class IPNotify {
                     currentIP = getCurrentIP(checkSiteURL);
                     gotIP = true;
                 } catch (IOException e) {
-                    System.out.printf("Error in retrieving current IP. Retrying in %d seconds...%n", retryTimeout);
+                    System.out.printf("Error in retrieving current IP. Retrying in %d seconds...%n", jcArgs.retryTimeout);
 
                     try {
-                        Thread.sleep(retryTimeout * 1000);
+                        Thread.sleep(jcArgs.retryTimeout * 1000);
                     } catch (InterruptedException e2) {
                         e.printStackTrace();
                     }
                 }
             } while (!gotIP);
 
-            ipMatches = currentIP.equals(expectedIP);
-            System.out.printf("Expected IP: %s - Actual IP: %s - Matches? %b%n", expectedIP, currentIP, ipMatches);
+            ipMatches = currentIP.equals(jcArgs.expectedIp);
+            System.out.printf("Expected IP: %s - Actual IP: %s - Matches? %b%n", jcArgs.expectedIp, currentIP, ipMatches);
 
             if (ipMatches) {
-                System.out.printf("IP has not changed. Sleeping for %d minutes before trying again...%n", sleepTime);
+                System.out.printf("IP has not changed. Sleeping for %d minutes before trying again...%n", jcArgs.sleepTime);
 
                 try {
-                    Thread.sleep(sleepTime * 60 * 1000);
+                    Thread.sleep(jcArgs.sleepTime * 60 * 1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             } else {
                 System.out.println("~~~ WARNING: IP has changed! ~~~");
                 System.out.println("Sending notification email...");
-                emailBot.sendIPChangeNotification(expectedIP, currentIP, retryTimeout);
+                emailBot.sendIPChangeNotification(jcArgs.expectedIp, currentIP, jcArgs.retryTimeout);
 
-                System.out.printf("Sleeping for %d seconds before exiting...%n", retryTimeout);
+                System.out.printf("Sleeping for %d seconds before exiting...%n", jcArgs.retryTimeout);
 
                 try {
-                    Thread.sleep(retryTimeout * 1000);
+                    Thread.sleep(jcArgs.retryTimeout * 1000);
                 } catch (InterruptedException e1) {
                     e1.printStackTrace();
                 }
@@ -89,7 +83,13 @@ public class IPNotify {
         return ip;
     }
 
-    public static void main(String[] args) {
-        new IPNotify().go(args[0], Integer.parseInt(args[1]));
+    public static void main(String[] rawArgs) {
+        Args jcArgs = new Args();
+        JCommander.newBuilder()
+                .addObject(jcArgs)
+                .build()
+                .parse(rawArgs);
+
+        new IPNotify().go(jcArgs);
     }
 }
