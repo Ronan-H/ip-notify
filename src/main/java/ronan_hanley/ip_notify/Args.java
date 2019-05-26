@@ -11,20 +11,8 @@ public class Args {
     String expectedIp;
 
     @Parameter(
-            names = {"--sleep-time", "-s"},
-            description = "Time to sleep after checking the IP address before trying again (minutes)"
-    )
-    Integer sleepTime = 10;
-
-    @Parameter(
-            names = {"--retry-timeout", "-rt"},
-            description = "Time to sleep failing to send the notification email before trying again"
-    )
-    Integer retryTimeout = 5;
-
-    @Parameter(
             names = {"--user", "-u"},
-            description = "Username of the SMTP email to use to send the notification emails from",
+            description = "Address of the SMTP email to use to send the notification emails from",
             required = true
     )
     String username;
@@ -49,4 +37,16 @@ public class Args {
             description = "Site to use to check the current IP address"
     )
     String ipCheckSite = "http://www.icanhazip.com/";
+
+    @Parameter(
+            names = {"--sleep-time", "-s"},
+            description = "Time to sleep after checking the IP address before trying again (minutes)"
+    )
+    Integer sleepTime = 10;
+
+    @Parameter(
+            names = {"--retry-timeout", "-rt"},
+            description = "Time to sleep failing to send the notification email before trying again"
+    )
+    Integer retryTimeout = 5;
 }

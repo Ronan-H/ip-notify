@@ -85,10 +85,12 @@ public class IPNotify {
 
     public static void main(String[] rawArgs) {
         Args jcArgs = new Args();
-        JCommander.newBuilder()
+        JCommander jc = JCommander.newBuilder()
                 .addObject(jcArgs)
-                .build()
-                .parse(rawArgs);
+                .build();
+
+        jc.setProgramName("IP Notify");
+        jc.usage();
 
         new IPNotify().go(jcArgs);
     }
