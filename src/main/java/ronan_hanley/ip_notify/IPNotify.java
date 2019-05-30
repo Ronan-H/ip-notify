@@ -11,72 +11,53 @@ import java.net.URL;
 public class IPNotify {
     private boolean running;
 
-    public void go(Args jcArgs) {
+    public void go(Args jcArgs) throws MalformedURLException, InterruptedException {
         EmailBot emailBot = new EmailBot(jcArgs.username, jcArgs.password, jcArgs.recipient);
 
-        URL checkSiteURL = null;
+        URL checkSiteURL;
         String currentIP = null;
         boolean gotIP;
         boolean ipMatches;
 
-        try {
-            checkSiteURL = new URL(jcArgs.ipCheckSite);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            System.exit(0);
-        }
+        checkSiteURL = new URL(jcArgs.ipCheckSite);
 
         running = true;
         while (running) {
             System.out.printf("Checking current external IP address on %s...%n", jcArgs.ipCheckSite);
 
             gotIP = false;
-            do {
+            while (!gotIP) {
                 try {
                     currentIP = getCurrentIP(checkSiteURL);
                     gotIP = true;
                 } catch (IOException e) {
                     System.out.printf("Error in retrieving current IP. Retrying in %d seconds...%n", jcArgs.retryTimeout);
-
-                    try {
-                        Thread.sleep(jcArgs.retryTimeout * 1000);
-                    } catch (InterruptedException e2) {
-                        e.printStackTrace();
-                    }
+                    Thread.sleep(jcArgs.retryTimeout * 1000);
                 }
-            } while (!gotIP);
+            }
 
             ipMatches = currentIP.equals(jcArgs.expectedIp);
-            System.out.printf("Expected IP: %s - Actual IP: %s - Matches? %b%n", jcArgs.expectedIp, currentIP, ipMatches);
+            System.out.printf("Expected IP: %s - Actual IP: %s - Matches? %s%n",
+                    jcArgs.expectedIp, currentIP, ipMatches ? "YES" : "NO");
 
             if (ipMatches) {
                 System.out.printf("IP has not changed. Sleeping for %d minutes before trying again...%n", jcArgs.sleepTime);
-
-                try {
-                    Thread.sleep(jcArgs.sleepTime * 60 * 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                Thread.sleep(jcArgs.sleepTime * 60 * 1000);
             } else {
                 System.out.println("~~~ WARNING: IP has changed! ~~~");
-                System.out.println("Sending notification email...");
+                System.out.println("Attempting to send notification email...");
                 emailBot.sendIPChangeNotification(jcArgs.expectedIp, currentIP, jcArgs.retryTimeout);
 
                 System.out.printf("Sleeping for %d seconds before exiting...%n", jcArgs.retryTimeout);
 
-                try {
-                    Thread.sleep(jcArgs.retryTimeout * 1000);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
+                Thread.sleep(jcArgs.retryTimeout * 1000);
 
-                System.out.println("Exiting...");
-                System.exit(0);
+                running = false;
             }
         }
     }
 
-    private String getCurrentIP(URL checkSiteURL) throws IOException {
+    private static String getCurrentIP(URL checkSiteURL) throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(checkSiteURL.openStream()));
         String ip = in.readLine();
         in.close();
@@ -93,6 +74,15 @@ public class IPNotify {
         jc.parse(rawArgs);
         jc.setProgramName("IP Notify");
 
-        new IPNotify().go(jcArgs);
+        try {
+            new IPNotify().go(jcArgs);
+        } catch (MalformedURLException e) {
+            System.err.println("Specified IP check site URL is malformed. Stack trace:");
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Exiting...");
     }
 }
