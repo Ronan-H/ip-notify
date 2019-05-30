@@ -19,7 +19,7 @@ public class EmailBot {
         this.recipient = recipient;
     }
 
-    public void sendIPChangeNotification(String fromIP, String toIP, int retryTimeout) {
+    public void sendIPChangeNotification(String fromIP, String toIP, int retryTimeout) throws InterruptedException {
         String subject = "Notification of IP Address Change";
 
         String body = "Hello,\n\n"
@@ -30,9 +30,7 @@ public class EmailBot {
         sendEmail(username, password, recipient, subject, body, retryTimeout);
     }
 
-    public void sendEmail(String from, String pass, String recipient, String subject, String body, int retryTimeout) {
-        boolean messageSent = false;
-
+    public void sendEmail(String from, String pass, String recipient, String subject, String body, int retryTimeout) throws InterruptedException {
         Properties props = System.getProperties();
         String host = "smtp.mail.com";
         props.put("mail.smtp.starttls.enable", "true");
@@ -45,6 +43,7 @@ public class EmailBot {
         Session session = Session.getDefaultInstance(props);
         MimeMessage message = new MimeMessage(session);
 
+        boolean messageSent = false;
         while (!messageSent) {
             try {
                 message.setFrom(new InternetAddress(from));
@@ -58,19 +57,12 @@ public class EmailBot {
                 transport.sendMessage(message, message.getAllRecipients());
                 transport.close();
 
-                messageSent = true;
                 System.out.println("Successfully sent the notification email.");
+                messageSent = true;
             }
             catch (MessagingException e) {
-                System.out.printf("Some error occurred while trying to send the email, sleeping for %d seconds before trying again...%n", retryTimeout);
-
-                e.printStackTrace();
-
-                try {
-                    Thread.sleep(retryTimeout * 1000);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
+                System.out.printf("Some error occurred while trying to send the email, sleeping for %d second(s) before trying again...%n", retryTimeout);
+                Thread.sleep(retryTimeout * 1000);
             }
         }
     }
