@@ -61,7 +61,7 @@ public class EmailBot {
                 messageSent = true;
             }
             catch (MessagingException e) {
-                System.out.printf("Some error occurred while trying to send the email, sleeping for %d seconds before trying again...%n", retryTimeout);
+                System.out.printf("Some error occurred while trying to send the email, sleeping for %d second(s) before trying again...%n", retryTimeout);
                 Thread.sleep(retryTimeout * 1000);
             }
         }

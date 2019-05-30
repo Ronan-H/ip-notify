@@ -31,7 +31,7 @@ public class IPNotify {
                     currentIP = getCurrentIP(checkSiteURL);
                     gotIP = true;
                 } catch (IOException e) {
-                    System.out.printf("Error in retrieving current IP. Retrying in %d seconds...%n", jcArgs.retryTimeout);
+                    System.out.printf("Error in retrieving current IP. Retrying in %d second(s)...%n", jcArgs.retryTimeout);
                     Thread.sleep(jcArgs.retryTimeout * 1000);
                 }
             }
@@ -41,7 +41,7 @@ public class IPNotify {
                     jcArgs.expectedIp, currentIP, ipMatches ? "YES" : "NO");
 
             if (ipMatches) {
-                System.out.printf("IP has not changed. Sleeping for %d minutes before trying again...%n", jcArgs.sleepTime);
+                System.out.printf("IP has not changed. Sleeping for %d minute(s) before trying again...%n", jcArgs.sleepTime);
                 Thread.sleep(jcArgs.sleepTime * 60 * 1000);
             } else {
                 System.out.println("~~~ WARNING: IP has changed! ~~~");
