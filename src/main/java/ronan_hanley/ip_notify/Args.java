@@ -36,7 +36,7 @@ public class Args {
             names = {"--check-site", "-c"},
             description = "Site to use to check the current IP address"
     )
-    String ipCheckSite = "http://www.icanhazip.com/";
+    String ipCheckSite = "https://icanhazip.com/";
 
     @Parameter(
             names = {"--sleep-time", "-s"},
